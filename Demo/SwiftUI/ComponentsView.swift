@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2023 Adyen N.V.
+// Copyright (c) 2024 Adyen N.V.
 //
 // This file is open source and available under the MIT license. See the LICENSE file for more info.
 //
@@ -7,91 +7,87 @@
 import Adyen
 import AdyenSwiftUI
 import SwiftUI
+import Combine
+
+internal struct StoreView: View {
+    
+    internal var body: some View {
+        NavigationStack {
+            let _ = print(Self.self)
+            List {
+                Text("2")
+            }
+            .navigationTitle("MyStore")
+        }
+    }
+}
+
+internal struct CartView: View {
+    
+    internal var body: some View {
+        NavigationStack {
+            let _ = print(Self.self)
+            List {
+                Text("2")
+            }
+            .navigationTitle("Cart")
+        }
+    }
+}
+
+internal struct SettingsView: View {
+    
+    @Binding var color: Color
+    
+    internal var body: some View {
+        NavigationStack {
+            let _ = print(Self.self)
+            List {
+                ColorPicker("Tint", selection: $color)
+            }
+            .navigationTitle("Settings")
+        }
+    }
+}
+
+protocol ViewModelDataSource {
+    var color: Color { get set }
+}
+
+internal class ViewModel: ObservableObject {
+    
+    @Published internal var selectedTab: Int = 1
+    @Published internal var color: Color {
+        didSet { dataSource.color = color }
+    }
+    
+    private var dataSource: ViewModelDataSource
+    
+    init(dataSource: ViewModelDataSource) {
+        self.dataSource = dataSource
+        color = dataSource.color
+    }
+}
 
 internal struct ComponentsView: View {
-
-    @ObservedObject internal var viewModel = ComponentsViewModel()
-
+    
+    @ObservedObject internal var model: ViewModel
+    
     internal var body: some View {
-        ZStack {
-            NavigationView {
-                List {
-                    Toggle("Using Session", isOn: $viewModel.isUsingSession)
-                        .accessibilityIdentifier("sessionSwitch")
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 5))
-                    
-                    ForEach(viewModel.items, id: \.self) { section in
-                        Section {
-                            ForEach(section, id: \.self) {
-                                listItem(for: $0)
-                            }
-                        }
-                    }
-                }
-                .disabled(viewModel.isLoading)
-                .listStyle(.insetGrouped)
-                .navigationBarTitle("Components")
-                .navigationBarItems(trailing: configurationButton)
-            }
+        TabView(selection: $model.selectedTab) {
+            let _ = print(Self.self)
+            StoreView()
+                .tabItem { Label("Store", systemImage: "1.square") }
+                .tag(0)
             
-            if viewModel.isLoading {
-                loadingIndicator
-            }
+            CartView()
+                .tabItem { Label("Cart", systemImage: "2.square") }
+                .tag(1)
+                
+            SettingsView(color: $model.color)
+                .tabItem { Label("Settings", systemImage: "3.square") }
+                .tag(2)
         }
-        .navigationViewStyle(.stack)
-        .ignoresSafeArea()
-        .present(viewController: $viewModel.viewControllerToPresent)
-        .onAppear {
-            self.viewModel.handleOnAppear()
-        }
-    }
-    
-    private func listItem(for item: ComponentsItem) -> some View {
-        Button(action: {
-            item.selectionHandler()
-        }, label: {
-            VStack(alignment: .leading) {
-                Text(item.title)
-                    .foregroundColor(.primary)
-                    .font(.headline)
-                if let subtitle = item.subtitle {
-                    Text(subtitle)
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                }
-            }
-            .padding(.vertical, 1)
-        })
-    }
-    
-    private var loadingIndicator: some View {
-        ProgressView()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .foregroundColor(.primary)
-            .background(Color(UIColor.systemBackground).opacity(0.3))
-    }
-
-    private var configurationButton: some View {
-        Button(action: viewModel.presentConfiguration, label: {
-            Image(systemName: "gear")
-        })
-        .disabled(viewModel.isLoading)
-    }
-}
-
-// swiftlint:disable:next type_name
-internal struct ContentView_Previews: PreviewProvider {
-    internal static var previews: some View {
-        ComponentsView()
-    }
-}
-
-extension EdgeInsets {
-    static var zero: EdgeInsets {
-        EdgeInsets(top: 0,
-                   leading: 0,
-                   bottom: 0,
-                   trailing: 0)
+        .tint(model.color)
     }
 }
