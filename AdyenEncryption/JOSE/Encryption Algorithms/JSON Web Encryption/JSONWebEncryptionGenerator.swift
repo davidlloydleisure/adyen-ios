@@ -35,7 +35,7 @@ internal struct JSONWebEncryptionGenerator: AnyJSONWebEncryptionGenerator {
                                               additionalAuthenticationData: additionalAuthenticationData)
         let contentEncryptionOutput = try contentEncryptionAlgorithm.encrypt(input: contentEncryptionInput)
         
-        return try JSONWebEncryption(header: header,
+        return try JSONWebEncryption(encodedHeader: encodedHeader,
                                      encryptedKey: encryptedKey,
                                      encryptedPayload: contentEncryptionOutput.encryptedPayload,
                                      initializationVector: initializationVector,

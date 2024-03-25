@@ -47,7 +47,7 @@ internal struct JSONWebEncryption {
         }
     }
     
-    internal let header: Header
+    internal let encodedHeader: Data
     
     internal let encryptedKey: Data
     
@@ -59,17 +59,17 @@ internal struct JSONWebEncryption {
     
     internal let compactRepresentation: String
     
-    internal init(header: Header,
+    internal init(encodedHeader: Data,
                   encryptedKey: Data,
                   encryptedPayload: Data,
                   initializationVector: Data,
                   authenticationTag: Data) throws {
-        self.header = header
+        self.encodedHeader = encodedHeader
         self.encryptedKey = encryptedKey
         self.encryptedPayload = encryptedPayload
         self.initializationVector = initializationVector
         self.authenticationTag = authenticationTag
-        self.compactRepresentation = [try JSONEncoder().encode(header).base64URLString(),
+        self.compactRepresentation = [encodedHeader.base64URLString(),
                                       encryptedKey.base64URLString(),
                                       initializationVector.base64URLString(),
                                       encryptedPayload.base64URLString(),
